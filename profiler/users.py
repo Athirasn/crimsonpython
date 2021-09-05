@@ -1,3 +1,4 @@
+from .auth import login_required
 from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash
 
@@ -34,6 +35,7 @@ def create_user():
     return jsonify({"id": cursor.lastrowid}), 201
 
 @blueprint.route("/", methods=["GET"])
+@login_required
 def list_users():
     db = get_db()
 

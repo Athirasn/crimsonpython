@@ -12,6 +12,9 @@ def create_app():
     from . import users
     app.register_blueprint(users.blueprint)
 
+    from . import auth
+    app.register_blueprint(auth.blueprint)
+
     @app.route("/")
     def hello():
        return {"message": "Hello, World!", "secret_key": app.config["SECRET_KEY"]}
