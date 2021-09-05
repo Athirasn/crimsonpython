@@ -9,6 +9,9 @@ def create_app():
     from . import db
     db.init_app(app)
 
+    from . import users
+    app.register_blueprint(users.blueprint)
+
     @app.route("/")
     def hello():
        return {"message": "Hello, World!", "secret_key": app.config["SECRET_KEY"]}
