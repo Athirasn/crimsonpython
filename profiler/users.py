@@ -1,6 +1,6 @@
 from .auth import login_required
-from flask import Blueprint, jsonify, request
-from werkzeug.security import generate_password_hash
+from flask import Blueprint, jsonify, request,g
+from werkzeug.security import generate_password_hash,check_password_hash
 
 from .db import get_db
 
@@ -107,4 +107,47 @@ def delete_user(user_id):
     db.commit()
 
     return "", 204
+
+
+@blueprint.route("/changePassword", methods=["POST"])
+def change_password():
+    data = request.json
+
+    old_password = data.get("old_password")
+    new_password = data.get("new_password")
+    user_id = g.user["id"]
+
+    if not all([old_password, new_password]):
+        return {"error": "Required fields are missing"}, 400
+
+    db = get_db()
+    
+
+    hashed_password = generate_password_hash(new_password)
+
+    cursor = db.execute("SELECT * FROM user WHERE id=?", (user_id,))
+    user = cursor.fetchone()
+
+    if user is None:
+        return {"error": "Invalid user id"}, 404
+
+    if not check_password_hash(user["password"], old_password):
+        return {"error": "Incorrect password"}, 401
+
+    if  check_password_hash(user["password"], new_password):
+        return {"error": "Current password and new Password are same"}, 401
+    try:
+        db.execute(
+            "UPDATE user SET password=? WHERE id=?",
+            (hashed_password, user_id),
+        )
+        db.commit()
+    except db.IntegrityError:
+        return {"error": "Error occured while changing password"}, 400
+
+    return "Password changed successfully", 200
+
+
+
+
 
